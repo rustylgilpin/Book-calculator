@@ -52,10 +52,83 @@
     .fee-item:last-child { border-bottom: none; font-weight: 700; color: #0f172a; }
     .profit-text { color: #10b981; font-weight: 600; }
     
-    .summary-box { background: linear-gradient(135deg, #1e293b, #0f172a); color: white; border-radius: 16px; padding: 18px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-    .summary-title { font-size: 18px; font-weight: 800; }
-    .summary-sub { font-size: 12px; color: #cbd5e1; margin-top: 4px; line-height: 1.4; }
+    /* Styled Green Summary Card */
+    .summary-card {
+      background: linear-gradient(135deg, #1d4332 0%, #153828 50%, #0f271c 100%);
+      color: #ffffff;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+    }
+    .summary-header-tag {
+      font-size: 11px;
+      font-weight: 700;
+      color: #5eead4;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .summary-title-main {
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1.3;
+      margin-bottom: 6px;
+    }
+    .summary-subtext-main {
+      font-size: 13px;
+      color: #a7f3d0;
+      margin-bottom: 18px;
+    }
     
+    /* Inner Stat Cards */
+    .summary-inner-box {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+    }
+    .summary-inner-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      color: #6ee7b7;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .summary-inner-val {
+      font-size: 17px;
+      font-weight: 800;
+      color: #ffffff;
+    }
+    
+    /* Bottom Fee Grid */
+    .summary-fee-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+    }
+    .summary-fee-card {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 10px 12px;
+      text-align: center;
+    }
+    .summary-fee-label {
+      font-size: 9px;
+      font-weight: 700;
+      color: #a7f3d0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .summary-fee-val {
+      font-size: 16px;
+      font-weight: 800;
+      color: #ffffff;
+    }
+
     .drawer { background: #f8fafc; padding: 12px; border-radius: 12px; margin-top: 12px; border: 1px dashed #cbd5e1; }
     .hidden { display: none; }
     .btn-group { display: inline-flex; border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden; }
@@ -233,9 +306,35 @@
       </div>
     </div>
 
-    <div class="summary-box">
-      <div class="summary-title" id="bestPlatformTitle">Marketplace Comparison</div>
-      <div class="summary-sub" id="savingsSubtext">See listing costs across all four major platforms.</div>
+    <!-- Styled Summary Box matching img_1687 -->
+    <div class="summary-card">
+      <div class="summary-header-tag">Platform Comparison Summary</div>
+      <div class="summary-title-main" id="bestPlatformTitle">Vinted saves $6.00 vs Pango (Etsy saves $2.93)</div>
+      <div class="summary-subtext-main" id="savingsSubtext">Etsy fees are $3.07 vs Pango's $6.00 to make $20.00 profit.</div>
+
+      <div class="summary-inner-box">
+        <div class="summary-inner-label">Lowest Buyer Out-Of-Pocket</div>
+        <div class="summary-inner-val" id="lowestBuyerBox">Etsy ($27.54)</div>
+      </div>
+
+      <div class="summary-fee-grid">
+        <div class="summary-fee-card">
+          <div class="summary-fee-label">Pango Fee (20%)</div>
+          <div class="summary-fee-val" id="sumPangoFee">$6.00</div>
+        </div>
+        <div class="summary-fee-card">
+          <div class="summary-fee-label">Vinted Seller Fee</div>
+          <div class="summary-fee-val" id="sumVintedFee">$0.00</div>
+        </div>
+        <div class="summary-fee-card">
+          <div class="summary-fee-label">Etsy Seller Fee</div>
+          <div class="summary-fee-val" id="sumEtsyFee">$3.07</div>
+        </div>
+        <div class="summary-fee-card">
+          <div class="summary-fee-label">eBay Seller Fee</div>
+          <div class="summary-fee-val" id="sumEbayFee">$4.89</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -288,7 +387,10 @@
     var vintedPrice = document.getElementById('vintedPrice'), vintedProfit = document.getElementById('vintedProfit'), vintedFee = document.getElementById('vintedFee'), vintedShipping = document.getElementById('vintedShipping'), vintedBuyerTotal = document.getElementById('vintedBuyerTotal');
     var etsyPrice = document.getElementById('etsyPrice'), etsyProfit = document.getElementById('etsyProfit'), etsyShipping = document.getElementById('etsyShipping'), etsyFee = document.getElementById('etsyFee'), etsyBuyerTotal = document.getElementById('etsyBuyerTotal');
     var ebayPrice = document.getElementById('ebayPrice'), ebayProfit = document.getElementById('ebayProfit'), ebayShipping = document.getElementById('ebayShipping'), ebayFee = document.getElementById('ebayFee'), ebayBuyerTotal = document.getElementById('ebayBuyerTotal');
+    
     var bestPlatformTitle = document.getElementById('bestPlatformTitle'), savingsSubtext = document.getElementById('savingsSubtext');
+    var lowestBuyerBox = document.getElementById('lowestBuyerBox');
+    var sumPangoFee = document.getElementById('sumPangoFee'), sumVintedFee = document.getElementById('sumVintedFee'), sumEtsyFee = document.getElementById('sumEtsyFee'), sumEbayFee = document.getElementById('sumEbayFee');
 
     function calculate() {
       var totalTargetProfit = (isBundle && profitMode === 'perBook') ? desiredProfitUnit * numBooks : desiredProfitUnit;
@@ -347,14 +449,29 @@
       ebayFee.innerText = '$' + ebayTotalFees.toFixed(2);
       ebayBuyerTotal.innerText = '$' + ebayBuyerOut.toFixed(2);
 
-      // Detailed Summary Calculations
-      var pangoFeeSavingsVsEtsy = pangoPlatformFee - etsyTotalFees;
-      var pangoFeeSavingsVsEbay = pangoPlatformFee - ebayTotalFees;
+      // Fee calculations
+      var etsySavingsVsPango = pangoPlatformFee - etsyTotalFees;
+      var ebaySavingsVsPango = pangoPlatformFee - ebayTotalFees;
 
-      bestPlatformTitle.innerText = 'Vinted saves $' + pangoPlatformFee.toFixed(2) + ' in seller fees vs Pango!';
-      savingsSubtext.innerHTML = '<strong>Seller Fees:</strong> Pango: $' + pangoPlatformFee.toFixed(2) + ' | Etsy: $' + etsyTotalFees.toFixed(2) + ' | eBay: $' + ebayTotalFees.toFixed(2) + ' | Vinted: $0.00<br>' +
-        '<strong>Etsy Fee Savings vs Pango:</strong> $' + pangoFeeSavingsVsEtsy.toFixed(2) + ' | <strong>eBay Fee Savings vs Pango:</strong> $' + pangoFeeSavingsVsEbay.toFixed(2) + '<br>' +
-        '<strong>Buyer Out-of-Pocket Total:</strong> Vinted: $' + vintedBuyerOut.toFixed(2) + ' | Etsy: $' + etsyBuyerOut.toFixed(2) + ' | eBay: $' + ebayBuyerOut.toFixed(2) + ' | Pango: $' + pangoListingPrice.toFixed(2);
+      // Update Summary Header & Subtext
+      bestPlatformTitle.innerText = 'Vinted saves $' + pangoPlatformFee.toFixed(2) + ' vs Pango (Etsy saves $' + etsySavingsVsPango.toFixed(2) + ')';
+      savingsSubtext.innerText = 'Etsy fees are $' + etsyTotalFees.toFixed(2) + ' vs Pango\'s $' + pangoPlatformFee.toFixed(2) + ' to make $' + totalTargetProfit.toFixed(2) + ' profit.';
+
+      // Determine Lowest Buyer Out-of-Pocket
+      var buyerTotals = [
+        { name: 'Vinted', val: vintedBuyerOut },
+        { name: 'Etsy', val: etsyBuyerOut },
+        { name: 'eBay', val: ebayBuyerOut },
+        { name: 'Pango', val: pangoListingPrice }
+      ];
+      buyerTotals.sort(function(a, b) { return a.val - b.val; });
+      lowestBuyerBox.innerText = buyerTotals[0].name + ' ($' + buyerTotals[0].val.toFixed(2) + ')';
+
+      // Update Summary Fee Grid
+      sumPangoFee.innerText = '$' + pangoPlatformFee.toFixed(2);
+      sumVintedFee.innerText = '$0.00';
+      sumEtsyFee.innerText = '$' + etsyTotalFees.toFixed(2);
+      sumEbayFee.innerText = '$' + ebayTotalFees.toFixed(2);
     }
 
     profitSlider.addEventListener('input', function(e) { desiredProfitUnit = parseFloat(e.target.value); profitDisplay.innerText = '$' + desiredProfitUnit.toFixed(2); calculate(); });
