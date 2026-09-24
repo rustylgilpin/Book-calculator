@@ -54,7 +54,7 @@
     
     .summary-box { background: linear-gradient(135deg, #1e293b, #0f172a); color: white; border-radius: 16px; padding: 18px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
     .summary-title { font-size: 18px; font-weight: 800; }
-    .summary-sub { font-size: 12px; color: #cbd5e1; margin-top: 2px; }
+    .summary-sub { font-size: 12px; color: #cbd5e1; margin-top: 4px; line-height: 1.4; }
     
     .drawer { background: #f8fafc; padding: 12px; border-radius: 12px; margin-top: 12px; border: 1px dashed #cbd5e1; }
     .hidden { display: none; }
@@ -347,8 +347,14 @@
       ebayFee.innerText = '$' + ebayTotalFees.toFixed(2);
       ebayBuyerTotal.innerText = '$' + ebayBuyerOut.toFixed(2);
 
-      bestPlatformTitle.innerText = 'eBay Fee: $' + ebayTotalFees.toFixed(2) + ' vs Pango Fee: $' + pangoPlatformFee.toFixed(2);
-      savingsSubtext.innerText = 'Etsy seller fees: $' + etsyTotalFees.toFixed(2) + ' | eBay seller fees: $' + ebayTotalFees.toFixed(2);
+      // Detailed Summary Calculations
+      var pangoFeeSavingsVsEtsy = pangoPlatformFee - etsyTotalFees;
+      var pangoFeeSavingsVsEbay = pangoPlatformFee - ebayTotalFees;
+
+      bestPlatformTitle.innerText = 'Vinted saves $' + pangoPlatformFee.toFixed(2) + ' in seller fees vs Pango!';
+      savingsSubtext.innerHTML = '<strong>Seller Fees:</strong> Pango: $' + pangoPlatformFee.toFixed(2) + ' | Etsy: $' + etsyTotalFees.toFixed(2) + ' | eBay: $' + ebayTotalFees.toFixed(2) + ' | Vinted: $0.00<br>' +
+        '<strong>Etsy Fee Savings vs Pango:</strong> $' + pangoFeeSavingsVsEtsy.toFixed(2) + ' | <strong>eBay Fee Savings vs Pango:</strong> $' + pangoFeeSavingsVsEbay.toFixed(2) + '<br>' +
+        '<strong>Buyer Out-of-Pocket Total:</strong> Vinted: $' + vintedBuyerOut.toFixed(2) + ' | Etsy: $' + etsyBuyerOut.toFixed(2) + ' | eBay: $' + ebayBuyerOut.toFixed(2) + ' | Pango: $' + pangoListingPrice.toFixed(2);
     }
 
     profitSlider.addEventListener('input', function(e) { desiredProfitUnit = parseFloat(e.target.value); profitDisplay.innerText = '$' + desiredProfitUnit.toFixed(2); calculate(); });
