@@ -53,6 +53,7 @@
     .fee-item:last-child { border-bottom: none; font-weight: 700; color: #0f172a; }
     .profit-text { color: #10b981; font-weight: 600; }
     
+    /* Green Summary Card */
     .summary-card {
       background: linear-gradient(135deg, #1d4332 0%, #153828 50%, #0f271c 100%);
       color: #ffffff;
@@ -171,6 +172,17 @@
 
       <div class="toggle-row">
         <div>
+          <div class="toggle-info">Free Shipping (Include in Asking Price)</div>
+          <div class="toggle-sub">Seller pays shipping; rolls cost into asking price</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="freeShippingToggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row" style="margin-top:12px;">
+        <div>
           <div class="toggle-info">Multi-Book Bundle</div>
           <div class="toggle-sub">Auto-scales weight (~0.75 lbs/book)</div>
         </div>
@@ -248,7 +260,7 @@
         <div>
           <div class="platform-header">
             <div>
-              <div class="tag tag-vinted">Buyer Pays Ship</div>
+              <div class="tag tag-vinted" id="vintedTag">Buyer Pays Ship</div>
               <div class="platform-title">Vinted</div>
             </div>
             <span style="font-size:10px; background:#ccfbf1; color:#0d9488; padding:2px 6px; border-radius:4px; font-weight:bold;">0% Fee</span>
@@ -271,7 +283,7 @@
         <div>
           <div class="platform-header">
             <div>
-              <div class="tag tag-etsy">Buyer Pays Ship</div>
+              <div class="tag tag-etsy" id="etsyTag">Buyer Pays Ship</div>
               <div class="platform-title">Etsy</div>
             </div>
             <span style="font-size:10px; background:#fef3c7; color:#d97706; padding:2px 6px; border-radius:4px; font-weight:bold;">~9.5%+$0.45</span>
@@ -294,7 +306,7 @@
         <div>
           <div class="platform-header">
             <div>
-              <div class="tag tag-ebay">Buyer Pays Ship</div>
+              <div class="tag tag-ebay" id="ebayTag">Buyer Pays Ship</div>
               <div class="platform-title">eBay</div>
             </div>
             <span style="font-size:10px; background:#dbeafe; color:#2563eb; padding:2px 6px; border-radius:4px; font-weight:bold;">15.3%+$0.30-$0.40</span>
@@ -317,7 +329,7 @@
         <div>
           <div class="platform-header">
             <div>
-              <div class="tag tag-abe">Buyer Pays Ship</div>
+              <div class="tag tag-abe" id="abeTag">Buyer Pays Ship</div>
               <div class="platform-title">AbeBooks</div>
             </div>
             <span style="font-size:10px; background:#f3e8ff; color:#7c3aed; padding:2px 6px; border-radius:4px; font-weight:bold;">15% + $1.00</span>
@@ -408,11 +420,12 @@
       return 12.50;
     }
 
-    var desiredProfitUnit = 20.0, packingCost = 1.50, packageWeight = 1.0, isBundle = false, numBooks = 2, profitMode = 'perBook', isVintedPromo = false, isEtsyAds = false;
+    var desiredProfitUnit = 20.0, packingCost = 1.50, packageWeight = 1.0, isFreeShipping = false, isBundle = false, numBooks = 2, profitMode = 'perBook', isVintedPromo = false, isEtsyAds = false;
 
     var profitSlider = document.getElementById('profitSlider'), profitDisplay = document.getElementById('profitDisplay');
     var packingSlider = document.getElementById('packingSlider'), packingDisplay = document.getElementById('packingDisplay');
     var weightSlider = document.getElementById('weightSlider'), weightDisplay = document.getElementById('weightDisplay');
+    var freeShippingToggle = document.getElementById('freeShippingToggle');
     var bundleToggle = document.getElementById('bundleToggle'), bundleDrawer = document.getElementById('bundleDrawer');
     var bookCountDisplay = document.getElementById('bookCountDisplay'), decBook = document.getElementById('decBook'), incBook = document.getElementById('incBook');
     var profitModePerBook = document.getElementById('profitModePerBook'), profitModeTotal = document.getElementById('profitModeTotal');
@@ -424,6 +437,7 @@
     var ebayPrice = document.getElementById('ebayPrice'), ebayProfit = document.getElementById('ebayProfit'), ebayShipping = document.getElementById('ebayShipping'), ebayFee = document.getElementById('ebayFee'), ebayBuyerTotal = document.getElementById('ebayBuyerTotal');
     var abePrice = document.getElementById('abePrice'), abeProfit = document.getElementById('abeProfit'), abeShipping = document.getElementById('abeShipping'), abeFee = document.getElementById('abeFee'), abeBuyerTotal = document.getElementById('abeBuyerTotal');
 
+    var vintedTag = document.getElementById('vintedTag'), etsyTag = document.getElementById('etsyTag'), ebayTag = document.getElementById('ebayTag'), abeTag = document.getElementById('abeTag');
     var bestPlatformTitle = document.getElementById('bestPlatformTitle'), savingsSubtext = document.getElementById('savingsSubtext');
     var lowestBuyerBox = document.getElementById('lowestBuyerBox');
     var sumPangoFee = document.getElementById('sumPangoFee'), sumVintedFee = document.getElementById('sumVintedFee'), sumEtsyFee = document.getElementById('sumEtsyFee'), sumEbayFee = document.getElementById('sumEbayFee'), sumAbeFee = document.getElementById('sumAbeFee');
@@ -436,41 +450,50 @@
       weightDisplay.innerText = activeWeight.toFixed(1) + ' lbs';
       packingDisplay.innerText = '$' + packingCost.toFixed(2);
 
-      // Target amount to cover profit + packing materials
-      var targetWithPacking = totalTargetProfit + packingCost;
+      var tagText = isFreeShipping ? 'Free Shipping' : 'Buyer Pays Ship';
+      vintedTag.innerText = tagText;
+      etsyTag.innerText = tagText;
+      ebayTag.innerText = tagText;
+      abeTag.innerText = tagText;
 
-      // Pango
+      var baseTarget = totalTargetProfit + packingCost;
+
+      // Pango (Always seller-paid shipping)
       var pangoShipCost = getPangoMediaMailCost(activeWeight);
-      var pangoListingPrice = (targetWithPacking + pangoShipCost) / 0.8;
+      var pangoListingPrice = (baseTarget + pangoShipCost) / 0.8;
       var pangoPlatformFee = pangoListingPrice * 0.20;
 
       // Vinted
-      var vintedListingPrice = targetWithPacking;
-      var vintedProtectionFee = 0.70 + (vintedListingPrice * 0.05);
       var vintedShipCost = getVintedShippingCost(activeWeight, isVintedPromo);
-      var vintedBuyerOut = vintedListingPrice + vintedProtectionFee + vintedShipCost;
+      var vintedTarget = isFreeShipping ? (baseTarget + vintedShipCost) : baseTarget;
+      var vintedListingPrice = vintedTarget;
+      var vintedProtectionFee = 0.70 + (vintedListingPrice * 0.05);
+      var vintedBuyerOut = isFreeShipping ? (vintedListingPrice + vintedProtectionFee) : (vintedListingPrice + vintedProtectionFee + vintedShipCost);
 
       // Etsy
       var etsyShipCost = getUspsMediaMailCost(activeWeight);
       var etsyFixedFees = 0.45;
       var etsyPctFee = (9.5 + (isEtsyAds ? 15.0 : 0)) / 100.0;
-      var etsyListingPrice = (targetWithPacking + etsyFixedFees + (etsyPctFee * etsyShipCost)) / (1.0 - etsyPctFee);
-      var etsyTotalFees = etsyFixedFees + (etsyPctFee * (etsyListingPrice + etsyShipCost));
-      var etsyBuyerOut = etsyListingPrice + etsyShipCost;
+      var etsyTarget = isFreeShipping ? (baseTarget + etsyShipCost) : baseTarget;
+      var etsyListingPrice = (etsyTarget + etsyFixedFees + (isFreeShipping ? 0 : (etsyPctFee * etsyShipCost))) / (1.0 - etsyPctFee);
+      var etsyTotalFees = etsyFixedFees + (etsyPctFee * (etsyListingPrice + (isFreeShipping ? 0 : etsyShipCost)));
+      var etsyBuyerOut = isFreeShipping ? etsyListingPrice : (etsyListingPrice + etsyShipCost);
 
       // eBay
       var ebayShipCost = getUspsMediaMailCost(activeWeight);
-      var ebayFixedFee = targetWithPacking <= 10.0 ? 0.30 : 0.40;
-      var ebayListingPrice = (targetWithPacking + ebayFixedFee + (0.153 * ebayShipCost)) / (1.0 - 0.153);
-      var ebayTotalFees = ebayFixedFee + (0.153 * (ebayListingPrice + ebayShipCost));
-      var ebayBuyerOut = ebayListingPrice + ebayShipCost;
+      var ebayFixedFee = baseTarget <= 10.0 ? 0.30 : 0.40;
+      var ebayTarget = isFreeShipping ? (baseTarget + ebayShipCost) : baseTarget;
+      var ebayListingPrice = (ebayTarget + ebayFixedFee + (isFreeShipping ? 0 : (0.153 * ebayShipCost))) / (1.0 - 0.153);
+      var ebayTotalFees = ebayFixedFee + (0.153 * (ebayListingPrice + (isFreeShipping ? 0 : ebayShipCost)));
+      var ebayBuyerOut = isFreeShipping ? ebayListingPrice : (ebayListingPrice + ebayShipCost);
 
-      // AbeBooks (15% on first $500, + $1.00 per item fee)
+      // AbeBooks
       var abeShipCost = getUspsMediaMailCost(activeWeight);
       var abeItemFee = isBundle ? numBooks * 1.00 : 1.00;
-      var abeListingPrice = targetWithPacking <= 500 ? (targetWithPacking + abeItemFee) / 0.85 : ((targetWithPacking + abeItemFee - 25) / 0.90);
+      var abeTarget = isFreeShipping ? (baseTarget + abeShipCost) : baseTarget;
+      var abeListingPrice = abeTarget <= 500 ? (abeTarget + abeItemFee) / 0.85 : ((abeTarget + abeItemFee - 25) / 0.90);
       var abeTotalFees = abeItemFee + (abeListingPrice <= 500 ? (abeListingPrice * 0.15) : (75 + (abeListingPrice - 500) * 0.10));
-      var abeBuyerOut = abeListingPrice + abeShipCost;
+      var abeBuyerOut = isFreeShipping ? abeListingPrice : (abeListingPrice + abeShipCost);
 
       pangoPrice.innerText = '$' + pangoListingPrice.toFixed(2);
       pangoProfit.innerText = '$' + totalTargetProfit.toFixed(2);
@@ -481,24 +504,24 @@
       vintedPrice.innerText = '$' + vintedListingPrice.toFixed(2);
       vintedProfit.innerText = '$' + totalTargetProfit.toFixed(2);
       vintedFee.innerText = '$' + vintedProtectionFee.toFixed(2);
-      vintedShipping.innerText = '$' + vintedShipCost.toFixed(2);
+      vintedShipping.innerText = isFreeShipping ? 'Included' : ('$' + vintedShipCost.toFixed(2));
       vintedBuyerTotal.innerText = '$' + vintedBuyerOut.toFixed(2);
 
       etsyPrice.innerText = '$' + etsyListingPrice.toFixed(2);
       etsyProfit.innerText = '$' + totalTargetProfit.toFixed(2);
-      etsyShipping.innerText = '$' + etsyShipCost.toFixed(2);
+      etsyShipping.innerText = isFreeShipping ? 'Included' : ('$' + etsyShipCost.toFixed(2));
       etsyFee.innerText = '$' + etsyTotalFees.toFixed(2);
       etsyBuyerTotal.innerText = '$' + etsyBuyerOut.toFixed(2);
 
       ebayPrice.innerText = '$' + ebayListingPrice.toFixed(2);
       ebayProfit.innerText = '$' + totalTargetProfit.toFixed(2);
-      ebayShipping.innerText = '$' + ebayShipCost.toFixed(2);
+      ebayShipping.innerText = isFreeShipping ? 'Included' : ('$' + ebayShipCost.toFixed(2));
       ebayFee.innerText = '$' + ebayTotalFees.toFixed(2);
       ebayBuyerTotal.innerText = '$' + ebayBuyerOut.toFixed(2);
 
       abePrice.innerText = '$' + abeListingPrice.toFixed(2);
       abeProfit.innerText = '$' + totalTargetProfit.toFixed(2);
-      abeShipping.innerText = '$' + abeShipCost.toFixed(2);
+      abeShipping.innerText = isFreeShipping ? 'Included' : ('$' + abeShipCost.toFixed(2));
       abeFee.innerText = '$' + abeTotalFees.toFixed(2);
       abeBuyerTotal.innerText = '$' + abeBuyerOut.toFixed(2);
 
@@ -506,7 +529,7 @@
       var etsySavingsVsPango = pangoPlatformFee - etsyTotalFees;
 
       bestPlatformTitle.innerText = 'Vinted saves $' + pangoPlatformFee.toFixed(2) + ' vs Pango (Etsy saves $' + etsySavingsVsPango.toFixed(2) + ')';
-      savingsSubtext.innerText = 'Etsy fees are $' + etsyTotalFees.toFixed(2) + ' vs Pango\'s $' + pangoPlatformFee.toFixed(2) + ' (includes $' + packingCost.toFixed(2) + ' packing cost).';
+      savingsSubtext.innerText = 'Etsy fees are $' + etsyTotalFees.toFixed(2) + ' vs Pango\'s $' + pangoPlatformFee.toFixed(2) + ' (includes $' + packingCost.toFixed(2) + ' packing' + (isFreeShipping ? ' + shipping' : '') + ').';
 
       // Lowest Buyer Out-of-Pocket
       var buyerTotals = [
@@ -530,6 +553,7 @@
     profitSlider.addEventListener('input', function(e) { desiredProfitUnit = parseFloat(e.target.value); profitDisplay.innerText = '$' + desiredProfitUnit.toFixed(2); calculate(); });
     packingSlider.addEventListener('input', function(e) { packingCost = parseFloat(e.target.value); calculate(); });
     weightSlider.addEventListener('input', function(e) { packageWeight = parseFloat(e.target.value); calculate(); });
+    freeShippingToggle.addEventListener('change', function(e) { isFreeShipping = e.target.checked; calculate(); });
     bundleToggle.addEventListener('change', function(e) { isBundle = e.target.checked; bundleDrawer.className = isBundle ? 'drawer' : 'drawer hidden'; weightSlider.disabled = isBundle; calculate(); });
     vintedPromoToggle.addEventListener('change', function(e) { isVintedPromo = e.target.checked; calculate(); });
     etsyAdsToggle.addEventListener('change', function(e) { isEtsyAds = e.target.checked; calculate(); });
