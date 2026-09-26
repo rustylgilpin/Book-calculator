@@ -178,13 +178,12 @@
       <div class="toggle-row">
         <div>
           <div class="toggle-info">Shipping Mode</div>
-          <div class="toggle-sub">Sliding scale absorption model</div>
+          <div class="toggle-sub">Sliding scale absorption model (Excludes Vinted)</div>
         </div>
         <select id="shippingModeSelect">
           <option value="global10">Global Free Ship @ $10 (Sliding Scale)</option>
           <option value="global15" selected>Global Free Ship @ $15 (Sliding Scale)</option>
-          <option value="vinted10">Vinted Only @ $10 (Sliding Scale)</option>
-          <option value="always">Always Free Shipping (All Sites)</option>
+          <option value="always">Always Free Shipping (Other Sites)</option>
           <option value="disabled">Disabled (Buyer Pays All Shipping)</option>
         </select>
       </div>
@@ -294,7 +293,7 @@
         <div>
           <div class="platform-header">
             <div>
-              <div class="tag tag-vinted" id="vintedTag">Buyer Pays Ship</div>
+              <div class="tag tag-vinted">Buyer Pays Ship Always</div>
               <div class="platform-title">Vinted</div>
             </div>
             <span style="font-size:10px; background:#ccfbf1; color:#0d9488; padding:2px 6px; border-radius:4px; font-weight:bold;">0% Fee</span>
@@ -310,7 +309,7 @@
           <div class="fee-list" style="margin-top:8px;">
             <div class="fee-item"><span>Target Profit:</span><span id="vintedProfit" class="profit-text">$0.00</span></div>
             <div class="fee-item"><span>Protection Fee:</span><span id="vintedFee">$0.00</span></div>
-            <div class="fee-item"><span>Seller Ship Part:</span><span id="vintedShipping">$0.00</span></div>
+            <div class="fee-item"><span>Seller Shipping:</span><span style="color:#0d9488; font-weight:bold;">$0.00 (Buyer Pays)</span></div>
             <div class="fee-item"><span>Buyer Total:</span><span id="vintedBuyerTotal" style="color:#0d9488">$0.00</span></div>
           </div>
         </div>
@@ -483,12 +482,12 @@
     var vintedPromoToggle = document.getElementById('vintedPromoToggle'), etsyAdsToggle = document.getElementById('etsyAdsToggle');
 
     var pangoPrice = document.getElementById('pangoPrice'), pangoProfit = document.getElementById('pangoProfit'), pangoShipping = document.getElementById('pangoShipping'), pangoFee = document.getElementById('pangoFee'), pangoBuyerTotal = document.getElementById('pangoBuyerTotal'), pangoOfferBox = document.getElementById('pangoOfferBox'), pangoOfferProfit = document.getElementById('pangoOfferProfit');
-    var vintedPrice = document.getElementById('vintedPrice'), vintedProfit = document.getElementById('vintedProfit'), vintedFee = document.getElementById('vintedFee'), vintedShipping = document.getElementById('vintedShipping'), vintedBuyerTotal = document.getElementById('vintedBuyerTotal'), vintedOfferBox = document.getElementById('vintedOfferBox'), vintedOfferProfit = document.getElementById('vintedOfferProfit');
+    var vintedPrice = document.getElementById('vintedPrice'), vintedProfit = document.getElementById('vintedProfit'), vintedFee = document.getElementById('vintedFee'), vintedBuyerTotal = document.getElementById('vintedBuyerTotal'), vintedOfferBox = document.getElementById('vintedOfferBox'), vintedOfferProfit = document.getElementById('vintedOfferProfit');
     var etsyPrice = document.getElementById('etsyPrice'), etsyProfit = document.getElementById('etsyProfit'), etsyShipping = document.getElementById('etsyShipping'), etsyFee = document.getElementById('etsyFee'), etsyBuyerTotal = document.getElementById('etsyBuyerTotal'), etsyOfferBox = document.getElementById('etsyOfferBox'), etsyOfferProfit = document.getElementById('etsyOfferProfit');
     var ebayPrice = document.getElementById('ebayPrice'), ebayProfit = document.getElementById('ebayProfit'), ebayShipping = document.getElementById('ebayShipping'), ebayFee = document.getElementById('ebayFee'), ebayBuyerTotal = document.getElementById('ebayBuyerTotal'), ebayOfferBox = document.getElementById('ebayOfferBox'), ebayOfferProfit = document.getElementById('ebayOfferProfit');
     var abePrice = document.getElementById('abePrice'), abeProfit = document.getElementById('abeProfit'), abeShipping = document.getElementById('abeShipping'), abeFee = document.getElementById('abeFee'), abeBuyerTotal = document.getElementById('abeBuyerTotal'), abeOfferBox = document.getElementById('abeOfferBox'), abeOfferProfit = document.getElementById('abeOfferProfit');
 
-    var pangoTag = document.getElementById('pangoTag'), vintedTag = document.getElementById('vintedTag'), etsyTag = document.getElementById('etsyTag'), ebayTag = document.getElementById('ebayTag'), abeTag = document.getElementById('abeTag');
+    var pangoTag = document.getElementById('pangoTag'), etsyTag = document.getElementById('etsyTag'), ebayTag = document.getElementById('ebayTag'), abeTag = document.getElementById('abeTag');
     var bestPlatformTitle = document.getElementById('bestPlatformTitle'), savingsSubtext = document.getElementById('savingsSubtext');
     var lowestBuyerBox = document.getElementById('lowestBuyerBox');
     var sumPangoFee = document.getElementById('sumPangoFee'), sumVintedFee = document.getElementById('sumVintedFee'), sumEtsyFee = document.getElementById('sumEtsyFee'), sumEbayFee = document.getElementById('sumEbayFee'), sumAbeFee = document.getElementById('sumAbeFee');
@@ -503,23 +502,16 @@
       offerDisplay.innerText = '$' + offerVal.toFixed(2);
 
       var mode = shippingModeSelect.value;
-      var globalRatio = 0.0, vintedRatio = 0.0;
+      var globalRatio = 0.0;
 
       if (mode === 'global10') {
         globalRatio = Math.min(1.0, Math.max(0.0, totalTargetProfit / 10.0));
-        vintedRatio = globalRatio;
       } else if (mode === 'global15') {
         globalRatio = Math.min(1.0, Math.max(0.0, totalTargetProfit / 15.0));
-        vintedRatio = globalRatio;
-      } else if (mode === 'vinted10') {
-        globalRatio = 0.0;
-        vintedRatio = Math.min(1.0, Math.max(0.0, totalTargetProfit / 10.0));
       } else if (mode === 'always') {
         globalRatio = 1.0;
-        vintedRatio = 1.0;
       } else {
         globalRatio = 0.0;
-        vintedRatio = 0.0;
       }
 
       function getTagText(r) {
@@ -529,7 +521,6 @@
       }
 
       pangoTag.innerText = getTagText(globalRatio);
-      vintedTag.innerText = getTagText(vintedRatio);
       etsyTag.innerText = getTagText(globalRatio);
       ebayTag.innerText = getTagText(globalRatio);
       abeTag.innerText = getTagText(globalRatio);
@@ -544,13 +535,11 @@
       var pangoPlatformFee = pangoListingPrice * 0.20;
       var pangoBuyerOut = pangoListingPrice + pangoBuyerPaid;
 
-      // Vinted
+      // Vinted (Strictly Buyer-Paid Shipping Always)
       var vintedShipCost = getVintedShippingCost(activeWeight, isVintedPromo);
-      var vintedAbsorbed = vintedShipCost * vintedRatio;
-      var vintedBuyerPaid = vintedShipCost * (1.0 - vintedRatio);
-      var vintedListingPrice = baseTarget + vintedAbsorbed;
+      var vintedListingPrice = baseTarget; // NO shipping added ever
       var vintedProtectionFee = 0.70 + (vintedListingPrice * 0.05);
-      var vintedBuyerOut = vintedListingPrice + vintedProtectionFee + vintedBuyerPaid;
+      var vintedBuyerOut = vintedListingPrice + vintedProtectionFee + vintedShipCost;
 
       // Etsy
       var etsyShipCost = getUspsMediaMailCost(activeWeight);
@@ -589,27 +578,22 @@
       abeOfferBox.className = isOfferMode ? 'offer-box' : 'offer-box hidden';
 
       if (isOfferMode) {
-        // Pango Net Profit on Offer
         var pangoOfferFee = offerVal * 0.20;
         var pangoNetOnOffer = offerVal - pangoOfferFee - (globalRatio > 0 ? pangoShipCost : 0) - packingCost;
         pangoOfferProfit.innerText = '$' + pangoNetOnOffer.toFixed(2);
 
-        // Vinted Net Profit on Offer
-        var vintedNetOnOffer = offerVal - (vintedRatio > 0 ? vintedShipCost : 0) - packingCost;
+        var vintedNetOnOffer = offerVal - packingCost; // $0 shipping absorbed by seller
         vintedOfferProfit.innerText = '$' + vintedNetOnOffer.toFixed(2);
 
-        // Etsy Net Profit on Offer
         var etsyOfferFees = 0.45 + (etsyPctFee * offerVal);
         var etsyNetOnOffer = offerVal - etsyOfferFees - (globalRatio > 0 ? etsyShipCost : 0) - packingCost;
         etsyOfferProfit.innerText = '$' + etsyNetOnOffer.toFixed(2);
 
-        // eBay Net Profit on Offer
         var ebayOfferFixed = offerVal <= 10.0 ? 0.30 : 0.40;
         var ebayOfferFees = ebayOfferFixed + (0.153 * offerVal);
         var ebayNetOnOffer = offerVal - ebayOfferFees - (globalRatio > 0 ? ebayShipCost : 0) - packingCost;
         ebayOfferProfit.innerText = '$' + ebayNetOnOffer.toFixed(2);
 
-        // Abe Net Profit on Offer
         var abeOfferFees = abeItemFee + (offerVal <= 500 ? (offerVal * 0.15) : (75 + (offerVal - 500) * 0.10));
         var abeNetOnOffer = offerVal - abeOfferFees - (globalRatio > 0 ? abeShipCost : 0) - packingCost;
         abeOfferProfit.innerText = '$' + abeNetOnOffer.toFixed(2);
@@ -624,7 +608,6 @@
       vintedPrice.innerText = '$' + vintedListingPrice.toFixed(2);
       vintedProfit.innerText = '$' + totalTargetProfit.toFixed(2);
       vintedFee.innerText = '$' + vintedProtectionFee.toFixed(2);
-      vintedShipping.innerText = '$' + vintedAbsorbed.toFixed(2);
       vintedBuyerTotal.innerText = '$' + vintedBuyerOut.toFixed(2);
 
       etsyPrice.innerText = '$' + etsyListingPrice.toFixed(2);
@@ -645,13 +628,11 @@
       abeFee.innerText = '$' + abeTotalFees.toFixed(2);
       abeBuyerTotal.innerText = '$' + abeBuyerOut.toFixed(2);
 
-      // Fee Savings Math
       var etsySavingsVsPango = pangoPlatformFee - etsyTotalFees;
 
       bestPlatformTitle.innerText = 'Vinted saves $' + pangoPlatformFee.toFixed(2) + ' vs Pango (Etsy saves $' + etsySavingsVsPango.toFixed(2) + ')';
       savingsSubtext.innerText = 'Etsy fees are $' + etsyTotalFees.toFixed(2) + ' vs Pango\'s $' + pangoPlatformFee.toFixed(2) + ' (includes $' + packingCost.toFixed(2) + ' packing).';
 
-      // Lowest Buyer Out-of-Pocket
       var buyerTotals = [
         { name: 'Vinted', val: vintedBuyerOut },
         { name: 'Etsy', val: etsyBuyerOut },
@@ -662,7 +643,6 @@
       buyerTotals.sort(function(a, b) { return a.val - b.val; });
       lowestBuyerBox.innerText = buyerTotals[0].name + ' ($' + buyerTotals[0].val.toFixed(2) + ')';
 
-      // Summary Fee Grid
       sumPangoFee.innerText = '$' + pangoPlatformFee.toFixed(2);
       sumVintedFee.innerText = '$0.00';
       sumEtsyFee.innerText = '$' + etsyTotalFees.toFixed(2);
@@ -683,7 +663,7 @@
     decBook.addEventListener('click', function() { if (numBooks > 2) { numBooks--; bookCountDisplay.innerText = numBooks; calculate(); } });
     incBook.addEventListener('click', function() { if (numBooks < 15) { numBooks++; bookCountDisplay.innerText = numBooks; calculate(); } });
 
-    profitModePerBook.addEventListener('click', function() { profitMode = 'perBook'; profitModePerBook.className = 'active'; profitModePerBook.className = 'active'; profitModeTotal.className = ''; calculate(); });
+    profitModePerBook.addEventListener('click', function() { profitMode = 'perBook'; profitModePerBook.className = 'active'; profitModeTotal.className = ''; calculate(); });
     profitModeTotal.addEventListener('click', function() { profitMode = 'total'; profitModeTotal.className = 'active'; profitModePerBook.className = ''; calculate(); });
 
     calculate();
