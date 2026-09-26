@@ -153,6 +153,15 @@
 
       <div class="control-group">
         <div class="label-row">
+          <span>Packing Materials Cost</span>
+          <span id="packingDisplay" class="badge" style="background:#f1f5f9; color:#1e293b;">$1.50</span>
+        </div>
+        <input type="range" id="packingSlider" min="0.00" max="10.00" step="0.25" value="1.50">
+        <div class="range-labels"><span>$0.00</span><span>$5.00</span><span>$10.00</span></div>
+      </div>
+
+      <div class="control-group">
+        <div class="label-row">
           <span>Package Weight</span>
           <span id="weightDisplay" class="badge" style="background:#f1f5f9; color:#1e293b;">1.0 lbs</span>
         </div>
@@ -399,9 +408,10 @@
       return 12.50;
     }
 
-    var desiredProfitUnit = 20.0, packageWeight = 1.0, isBundle = false, numBooks = 2, profitMode = 'perBook', isVintedPromo = false, isEtsyAds = false;
+    var desiredProfitUnit = 20.0, packingCost = 1.50, packageWeight = 1.0, isBundle = false, numBooks = 2, profitMode = 'perBook', isVintedPromo = false, isEtsyAds = false;
 
     var profitSlider = document.getElementById('profitSlider'), profitDisplay = document.getElementById('profitDisplay');
+    var packingSlider = document.getElementById('packingSlider'), packingDisplay = document.getElementById('packingDisplay');
     var weightSlider = document.getElementById('weightSlider'), weightDisplay = document.getElementById('weightDisplay');
     var bundleToggle = document.getElementById('bundleToggle'), bundleDrawer = document.getElementById('bundleDrawer');
     var bookCountDisplay = document.getElementById('bookCountDisplay'), decBook = document.getElementById('decBook'), incBook = document.getElementById('incBook');
@@ -424,14 +434,18 @@
       if (isBundle) weightSlider.value = activeWeight.toFixed(1);
       
       weightDisplay.innerText = activeWeight.toFixed(1) + ' lbs';
+      packingDisplay.innerText = '$' + packingCost.toFixed(2);
+
+      // Target amount to cover profit + packing materials
+      var targetWithPacking = totalTargetProfit + packingCost;
 
       // Pango
       var pangoShipCost = getPangoMediaMailCost(activeWeight);
-      var pangoListingPrice = (totalTargetProfit + pangoShipCost) / 0.8;
+      var pangoListingPrice = (targetWithPacking + pangoShipCost) / 0.8;
       var pangoPlatformFee = pangoListingPrice * 0.20;
 
       // Vinted
-      var vintedListingPrice = totalTargetProfit;
+      var vintedListingPrice = targetWithPacking;
       var vintedProtectionFee = 0.70 + (vintedListingPrice * 0.05);
       var vintedShipCost = getVintedShippingCost(activeWeight, isVintedPromo);
       var vintedBuyerOut = vintedListingPrice + vintedProtectionFee + vintedShipCost;
@@ -440,21 +454,21 @@
       var etsyShipCost = getUspsMediaMailCost(activeWeight);
       var etsyFixedFees = 0.45;
       var etsyPctFee = (9.5 + (isEtsyAds ? 15.0 : 0)) / 100.0;
-      var etsyListingPrice = (totalTargetProfit + etsyFixedFees + (etsyPctFee * etsyShipCost)) / (1.0 - etsyPctFee);
+      var etsyListingPrice = (targetWithPacking + etsyFixedFees + (etsyPctFee * etsyShipCost)) / (1.0 - etsyPctFee);
       var etsyTotalFees = etsyFixedFees + (etsyPctFee * (etsyListingPrice + etsyShipCost));
       var etsyBuyerOut = etsyListingPrice + etsyShipCost;
 
       // eBay
       var ebayShipCost = getUspsMediaMailCost(activeWeight);
-      var ebayFixedFee = totalTargetProfit <= 10.0 ? 0.30 : 0.40;
-      var ebayListingPrice = (totalTargetProfit + ebayFixedFee + (0.153 * ebayShipCost)) / (1.0 - 0.153);
+      var ebayFixedFee = targetWithPacking <= 10.0 ? 0.30 : 0.40;
+      var ebayListingPrice = (targetWithPacking + ebayFixedFee + (0.153 * ebayShipCost)) / (1.0 - 0.153);
       var ebayTotalFees = ebayFixedFee + (0.153 * (ebayListingPrice + ebayShipCost));
       var ebayBuyerOut = ebayListingPrice + ebayShipCost;
 
       // AbeBooks (15% on first $500, + $1.00 per item fee)
       var abeShipCost = getUspsMediaMailCost(activeWeight);
       var abeItemFee = isBundle ? numBooks * 1.00 : 1.00;
-      var abeListingPrice = totalTargetProfit <= 500 ? (totalTargetProfit + abeItemFee) / 0.85 : ((totalTargetProfit + abeItemFee - 25) / 0.90);
+      var abeListingPrice = targetWithPacking <= 500 ? (targetWithPacking + abeItemFee) / 0.85 : ((targetWithPacking + abeItemFee - 25) / 0.90);
       var abeTotalFees = abeItemFee + (abeListingPrice <= 500 ? (abeListingPrice * 0.15) : (75 + (abeListingPrice - 500) * 0.10));
       var abeBuyerOut = abeListingPrice + abeShipCost;
 
@@ -488,11 +502,11 @@
       abeFee.innerText = '$' + abeTotalFees.toFixed(2);
       abeBuyerTotal.innerText = '$' + abeBuyerOut.toFixed(2);
 
-      // Calculations
+      // Fee Savings Math
       var etsySavingsVsPango = pangoPlatformFee - etsyTotalFees;
 
       bestPlatformTitle.innerText = 'Vinted saves $' + pangoPlatformFee.toFixed(2) + ' vs Pango (Etsy saves $' + etsySavingsVsPango.toFixed(2) + ')';
-      savingsSubtext.innerText = 'Etsy fees are $' + etsyTotalFees.toFixed(2) + ' vs Pango\'s $' + pangoPlatformFee.toFixed(2) + ' to make $' + totalTargetProfit.toFixed(2) + ' profit.';
+      savingsSubtext.innerText = 'Etsy fees are $' + etsyTotalFees.toFixed(2) + ' vs Pango\'s $' + pangoPlatformFee.toFixed(2) + ' (includes $' + packingCost.toFixed(2) + ' packing cost).';
 
       // Lowest Buyer Out-of-Pocket
       var buyerTotals = [
@@ -514,6 +528,7 @@
     }
 
     profitSlider.addEventListener('input', function(e) { desiredProfitUnit = parseFloat(e.target.value); profitDisplay.innerText = '$' + desiredProfitUnit.toFixed(2); calculate(); });
+    packingSlider.addEventListener('input', function(e) { packingCost = parseFloat(e.target.value); calculate(); });
     weightSlider.addEventListener('input', function(e) { packageWeight = parseFloat(e.target.value); calculate(); });
     bundleToggle.addEventListener('change', function(e) { isBundle = e.target.checked; bundleDrawer.className = isBundle ? 'drawer' : 'drawer hidden'; weightSlider.disabled = isBundle; calculate(); });
     vintedPromoToggle.addEventListener('change', function(e) { isVintedPromo = e.target.checked; calculate(); });
