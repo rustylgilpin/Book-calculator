@@ -53,7 +53,6 @@
     .fee-item:last-child { border-bottom: none; font-weight: 700; color: #0f172a; }
     .profit-text { color: #10b981; font-weight: 600; }
     
-    /* Green Summary Card */
     .summary-card {
       background: linear-gradient(135deg, #1d4332 0%, #153828 50%, #0f271c 100%);
       color: #ffffff;
@@ -237,7 +236,7 @@
         <div>
           <div class="platform-header">
             <div>
-              <div class="tag tag-pango" id="pangoTag">Seller Pays Ship</div>
+              <div class="tag tag-pango" id="pangoTag">Buyer Pays Ship</div>
               <div class="platform-title">PangoBooks</div>
             </div>
             <span style="font-size:10px; background:#ffe4e6; color:#e11d48; padding:2px 6px; border-radius:4px; font-weight:bold;">20% Fee</span>
@@ -248,7 +247,7 @@
           </div>
           <div class="fee-list">
             <div class="fee-item"><span>Your Profit:</span><span id="pangoProfit" class="profit-text">$0.00</span></div>
-            <div class="fee-item"><span>Shipping Tier:</span><span id="pangoShipping">$0.00</span></div>
+            <div class="fee-item"><span>Shipping Rate:</span><span id="pangoShipping">$0.00</span></div>
             <div class="fee-item"><span>Pango Fee (20%):</span><span id="pangoFee" style="color:#e11d48">$0.00</span></div>
             <div class="fee-item"><span>Buyer Total:</span><span id="pangoBuyerTotal">$0.00</span></div>
           </div>
@@ -351,18 +350,18 @@
     <!-- Green Summary Card -->
     <div class="summary-card">
       <div class="summary-header-tag">Platform Comparison Summary</div>
-      <div class="summary-title-main" id="bestPlatformTitle">Vinted saves $6.00 vs Pango (Etsy saves $2.93)</div>
-      <div class="summary-subtext-main" id="savingsSubtext">Etsy fees are $3.07 vs Pango's $6.00 to make $20.00 profit.</div>
+      <div class="summary-title-main" id="bestPlatformTitle">Vinted saves $5.38 vs Pango</div>
+      <div class="summary-subtext-main" id="savingsSubtext">Etsy fees are $2.88 vs Pango's $5.38 to make $20.00 profit.</div>
 
       <div class="summary-inner-box">
         <div class="summary-inner-label">Lowest Buyer Out-Of-Pocket</div>
-        <div class="summary-inner-val" id="lowestBuyerBox">Etsy ($27.54)</div>
+        <div class="summary-inner-val" id="lowestBuyerBox">Vinted ($27.19)</div>
       </div>
 
       <div class="summary-fee-grid">
         <div class="summary-fee-card">
           <div class="summary-fee-label">Pango Fee</div>
-          <div class="summary-fee-val" id="sumPangoFee">$6.00</div>
+          <div class="summary-fee-val" id="sumPangoFee">$5.38</div>
         </div>
         <div class="summary-fee-card">
           <div class="summary-fee-label">Vinted Fee</div>
@@ -370,15 +369,15 @@
         </div>
         <div class="summary-fee-card">
           <div class="summary-fee-label">Etsy Fee</div>
-          <div class="summary-fee-val" id="sumEtsyFee">$3.07</div>
+          <div class="summary-fee-val" id="sumEtsyFee">$2.88</div>
         </div>
         <div class="summary-fee-card">
           <div class="summary-fee-label">eBay Fee</div>
-          <div class="summary-fee-val" id="sumEbayFee">$4.89</div>
+          <div class="summary-fee-val" id="sumEbayFee">$4.65</div>
         </div>
         <div class="summary-fee-card">
           <div class="summary-fee-label">AbeBooks Fee</div>
-          <div class="summary-fee-val" id="sumAbeFee">$4.53</div>
+          <div class="summary-fee-val" id="sumAbeFee">$4.38</div>
         </div>
       </div>
     </div>
@@ -451,7 +450,7 @@
       packingDisplay.innerText = '$' + packingCost.toFixed(2);
 
       var tagText = isFreeShipping ? 'Free Shipping' : 'Buyer Pays Ship';
-      pangoTag.innerText = isFreeShipping ? 'Free Shipping' : 'Seller Pays Ship';
+      pangoTag.innerText = tagText;
       vintedTag.innerText = tagText;
       etsyTag.innerText = tagText;
       ebayTag.innerText = tagText;
@@ -459,10 +458,12 @@
 
       var baseTarget = totalTargetProfit + packingCost;
 
-      // Pango (Always seller-paid shipping)
+      // Pango (20% fee, buyer pays ship by default; seller pays ship if free shipping)
       var pangoShipCost = getPangoMediaMailCost(activeWeight);
-      var pangoListingPrice = (baseTarget + pangoShipCost) / 0.8;
+      var pangoTarget = isFreeShipping ? (baseTarget + pangoShipCost) : baseTarget;
+      var pangoListingPrice = pangoTarget / 0.80;
       var pangoPlatformFee = pangoListingPrice * 0.20;
+      var pangoBuyerOut = isFreeShipping ? pangoListingPrice : (pangoListingPrice + pangoShipCost);
 
       // Vinted
       var vintedShipCost = getVintedShippingCost(activeWeight, isVintedPromo);
@@ -498,9 +499,9 @@
 
       pangoPrice.innerText = '$' + pangoListingPrice.toFixed(2);
       pangoProfit.innerText = '$' + totalTargetProfit.toFixed(2);
-      pangoShipping.innerText = '$' + pangoShipCost.toFixed(2);
+      pangoShipping.innerText = isFreeShipping ? 'Included' : ('$' + pangoShipCost.toFixed(2));
       pangoFee.innerText = '$' + pangoPlatformFee.toFixed(2);
-      pangoBuyerTotal.innerText = '$' + pangoListingPrice.toFixed(2);
+      pangoBuyerTotal.innerText = '$' + pangoBuyerOut.toFixed(2);
 
       vintedPrice.innerText = '$' + vintedListingPrice.toFixed(2);
       vintedProfit.innerText = '$' + totalTargetProfit.toFixed(2);
@@ -538,7 +539,7 @@
         { name: 'Etsy', val: etsyBuyerOut },
         { name: 'eBay', val: ebayBuyerOut },
         { name: 'AbeBooks', val: abeBuyerOut },
-        { name: 'Pango', val: pangoListingPrice }
+        { name: 'Pango', val: pangoBuyerOut }
       ];
       buyerTotals.sort(function(a, b) { return a.val - b.val; });
       lowestBuyerBox.innerText = buyerTotals[0].name + ' ($' + buyerTotals[0].val.toFixed(2) + ')';
