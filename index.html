@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="icon.png">
-  <title>Book Price Calculator - Marketplace Comparison</title>
+  <title>Multi-Marketplace Price Calculator</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; padding: 16px; }
@@ -143,11 +143,22 @@
 <body>
   <div class="container">
     <header>
-      <h1>Book Listing Price Calculator</h1>
+      <h1>Multi-Marketplace Price Calculator</h1>
       <div class="subtitle">PangoBooks vs. Vinted vs. Etsy vs. eBay vs. AbeBooks</div>
     </header>
 
     <div class="card">
+      <div class="toggle-row" style="padding-top:0; border-top:none; margin-bottom:14px;">
+        <div>
+          <div class="toggle-info">Item Category</div>
+          <div class="toggle-sub">Sets carrier rates (Media Mail vs. Ground Advantage)</div>
+        </div>
+        <div class="btn-group">
+          <button id="catBook" class="active">Book / Media</button>
+          <button id="catGeneral">General Merchandise</button>
+        </div>
+      </div>
+
       <div class="control-group">
         <div class="label-row">
           <span id="profitLabel">Desired Profit Target</span>
@@ -213,7 +224,7 @@
       <div class="toggle-row" style="margin-top:12px;">
         <div>
           <div class="toggle-info">Multi-Book Bundle</div>
-          <div class="toggle-sub">Auto-scales weight (~0.75 lbs/book)</div>
+          <div class="toggle-sub">Auto-scales weight (~0.75 lbs/item)</div>
         </div>
         <label class="switch">
           <input type="checkbox" id="bundleToggle">
@@ -223,7 +234,7 @@
 
       <div id="bundleDrawer" class="drawer hidden">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-          <span style="font-size:12px; font-weight:600;">Books in Bundle:</span>
+          <span style="font-size:12px; font-weight:600;">Items in Bundle:</span>
           <div>
             <button id="decBook" style="width:24px; height:24px;">-</button>
             <span id="bookCountDisplay" style="font-weight:bold; font-size:13px; margin: 0 8px;">2</span>
@@ -233,7 +244,7 @@
         <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px;">
           <span>Profit Mode:</span>
           <div class="btn-group">
-            <button id="profitModePerBook" class="active">Per Book</button>
+            <button id="profitModePerBook" class="active">Per Item</button>
             <button id="profitModeTotal">Total Bundle</button>
           </div>
         </div>
@@ -262,7 +273,7 @@
 
     <div class="grid">
       <!-- Pango -->
-      <div class="platform-card">
+      <div class="platform-card" id="pangoCard">
         <div>
           <div class="platform-header">
             <div>
@@ -370,7 +381,7 @@
       </div>
 
       <!-- AbeBooks -->
-      <div class="platform-card">
+      <div class="platform-card" id="abeCard">
         <div>
           <div class="platform-header">
             <div>
@@ -409,7 +420,7 @@
       </div>
 
       <div class="summary-fee-grid">
-        <div class="summary-fee-card">
+        <div class="summary-fee-card" id="sumPangoCard">
           <div class="summary-fee-label">Pango Fee</div>
           <div class="summary-fee-val" id="sumPangoFee">$5.38</div>
         </div>
@@ -425,7 +436,7 @@
           <div class="summary-fee-label">eBay Fee</div>
           <div class="summary-fee-val" id="sumEbayFee">$4.65</div>
         </div>
-        <div class="summary-fee-card">
+        <div class="summary-fee-card" id="sumAbeCard">
           <div class="summary-fee-label">AbeBooks Fee</div>
           <div class="summary-fee-val" id="sumAbeFee">$4.38</div>
         </div>
@@ -460,6 +471,24 @@
       return 11.22;
     }
 
+    function getUspsGroundAdvantageCost(weight) {
+      if (weight <= 0.25) return 4.15; // 4 oz
+      if (weight <= 0.50) return 4.55; // 8 oz
+      if (weight <= 0.75) return 4.95; // 12 oz
+      if (weight <= 0.99) return 5.55; // 15.9 oz
+      var w = Math.ceil(weight);
+      if (w <= 1) return 6.25;
+      if (w <= 2) return 7.10;
+      if (w <= 3) return 8.15;
+      if (w <= 4) return 9.25;
+      if (w <= 5) return 10.50;
+      if (w <= 6) return 11.80;
+      if (w <= 7) return 13.10;
+      if (w <= 8) return 14.40;
+      if (w <= 9) return 15.70;
+      return 17.00;
+    }
+
     function getVintedShippingCost(w, isPromo) {
       if (isPromo) return 0.99;
       if (w <= 0.8) return 3.99;
@@ -469,7 +498,12 @@
       return 12.50;
     }
 
+    var itemCategory = 'book'; // 'book' or 'general'
     var desiredProfitUnit = 20.0, packingCost = 1.50, packageWeight = 1.0, isBundle = false, numBooks = 2, profitMode = 'perBook', isVintedPromo = false, isEtsyAds = false, isOfferMode = false, offerVal = 8.00;
+
+    var catBook = document.getElementById('catBook'), catGeneral = document.getElementById('catGeneral');
+    var pangoCard = document.getElementById('pangoCard'), abeCard = document.getElementById('abeCard');
+    var sumPangoCard = document.getElementById('sumPangoCard'), sumAbeCard = document.getElementById('sumAbeCard');
 
     var profitSlider = document.getElementById('profitSlider'), profitDisplay = document.getElementById('profitDisplay');
     var packingSlider = document.getElementById('packingSlider'), packingDisplay = document.getElementById('packingDisplay');
@@ -527,7 +561,10 @@
 
       var baseTarget = totalTargetProfit + packingCost;
 
-      // Pango
+      // Select Carrier Rate Function based on Category
+      var getGeneralShipCost = (itemCategory === 'book') ? getUspsMediaMailCost : getUspsGroundAdvantageCost;
+
+      // Pango (Books Only)
       var pangoShipCost = getPangoMediaMailCost(activeWeight);
       var pangoAbsorbed = pangoShipCost * globalRatio;
       var pangoBuyerPaid = pangoShipCost * (1.0 - globalRatio);
@@ -535,14 +572,14 @@
       var pangoPlatformFee = pangoListingPrice * 0.20;
       var pangoBuyerOut = pangoListingPrice + pangoBuyerPaid;
 
-      // Vinted (Strictly Buyer-Paid Shipping Always)
+      // Vinted (Flats by Weight - Universal)
       var vintedShipCost = getVintedShippingCost(activeWeight, isVintedPromo);
-      var vintedListingPrice = baseTarget; // NO shipping added ever
+      var vintedListingPrice = baseTarget;
       var vintedProtectionFee = 0.70 + (vintedListingPrice * 0.05);
       var vintedBuyerOut = vintedListingPrice + vintedProtectionFee + vintedShipCost;
 
       // Etsy
-      var etsyShipCost = getUspsMediaMailCost(activeWeight);
+      var etsyShipCost = getGeneralShipCost(activeWeight);
       var etsyAbsorbed = etsyShipCost * globalRatio;
       var etsyBuyerPaid = etsyShipCost * (1.0 - globalRatio);
       var etsyFixedFees = 0.45;
@@ -552,7 +589,7 @@
       var etsyBuyerOut = etsyListingPrice + etsyBuyerPaid;
 
       // eBay
-      var ebayShipCost = getUspsMediaMailCost(activeWeight);
+      var ebayShipCost = getGeneralShipCost(activeWeight);
       var ebayAbsorbed = ebayShipCost * globalRatio;
       var ebayBuyerPaid = ebayShipCost * (1.0 - globalRatio);
       var ebayFixedFee = baseTarget <= 10.0 ? 0.30 : 0.40;
@@ -560,8 +597,8 @@
       var ebayTotalFees = ebayFixedFee + (0.153 * (ebayListingPrice + ebayBuyerPaid));
       var ebayBuyerOut = ebayListingPrice + ebayBuyerPaid;
 
-      // AbeBooks
-      var abeShipCost = getUspsMediaMailCost(activeWeight);
+      // AbeBooks (Books/Collectibles)
+      var abeShipCost = getGeneralShipCost(activeWeight);
       var abeAbsorbed = abeShipCost * globalRatio;
       var abeBuyerPaid = abeShipCost * (1.0 - globalRatio);
       var abeItemFee = isBundle ? numBooks * 1.00 : 1.00;
@@ -582,7 +619,7 @@
         var pangoNetOnOffer = offerVal - pangoOfferFee - (globalRatio > 0 ? pangoShipCost : 0) - packingCost;
         pangoOfferProfit.innerText = '$' + pangoNetOnOffer.toFixed(2);
 
-        var vintedNetOnOffer = offerVal - packingCost; // $0 shipping absorbed by seller
+        var vintedNetOnOffer = offerVal - packingCost;
         vintedOfferProfit.innerText = '$' + vintedNetOnOffer.toFixed(2);
 
         var etsyOfferFees = 0.45 + (etsyPctFee * offerVal);
@@ -628,18 +665,20 @@
       abeFee.innerText = '$' + abeTotalFees.toFixed(2);
       abeBuyerTotal.innerText = '$' + abeBuyerOut.toFixed(2);
 
-      var etsySavingsVsPango = pangoPlatformFee - etsyTotalFees;
+      var etsySavingsVsEbay = ebayTotalFees - etsyTotalFees;
 
-      bestPlatformTitle.innerText = 'Vinted saves $' + pangoPlatformFee.toFixed(2) + ' vs Pango (Etsy saves $' + etsySavingsVsPango.toFixed(2) + ')';
-      savingsSubtext.innerText = 'Etsy fees are $' + etsyTotalFees.toFixed(2) + ' vs Pango\'s $' + pangoPlatformFee.toFixed(2) + ' (includes $' + packingCost.toFixed(2) + ' packing).';
+      bestPlatformTitle.innerText = 'Vinted saves $' + ebayTotalFees.toFixed(2) + ' in fees vs eBay';
+      savingsSubtext.innerText = 'Etsy fees are $' + etsyTotalFees.toFixed(2) + ' vs eBay\'s $' + ebayTotalFees.toFixed(2) + ' (includes $' + packingCost.toFixed(2) + ' packing).';
 
       var buyerTotals = [
         { name: 'Vinted', val: vintedBuyerOut },
         { name: 'Etsy', val: etsyBuyerOut },
-        { name: 'eBay', val: ebayBuyerOut },
-        { name: 'AbeBooks', val: abeBuyerOut },
-        { name: 'Pango', val: pangoBuyerOut }
+        { name: 'eBay', val: ebayBuyerOut }
       ];
+      if (itemCategory === 'book') {
+        buyerTotals.push({ name: 'Pango', val: pangoBuyerOut });
+        buyerTotals.push({ name: 'AbeBooks', val: abeBuyerOut });
+      }
       buyerTotals.sort(function(a, b) { return a.val - b.val; });
       lowestBuyerBox.innerText = buyerTotals[0].name + ' ($' + buyerTotals[0].val.toFixed(2) + ')';
 
@@ -649,6 +688,28 @@
       sumEbayFee.innerText = '$' + ebayTotalFees.toFixed(2);
       sumAbeFee.innerText = '$' + abeTotalFees.toFixed(2);
     }
+
+    catBook.addEventListener('click', function() {
+      itemCategory = 'book';
+      catBook.className = 'active';
+      catGeneral.className = '';
+      pangoCard.classList.remove('hidden');
+      abeCard.classList.remove('hidden');
+      sumPangoCard.classList.remove('hidden');
+      sumAbeCard.classList.remove('hidden');
+      calculate();
+    });
+
+    catGeneral.addEventListener('click', function() {
+      itemCategory = 'general';
+      catGeneral.className = 'active';
+      catBook.className = '';
+      pangoCard.classList.add('hidden');
+      abeCard.classList.add('hidden');
+      sumPangoCard.classList.add('hidden');
+      sumAbeCard.classList.add('hidden');
+      calculate();
+    });
 
     profitSlider.addEventListener('input', function(e) { desiredProfitUnit = parseFloat(e.target.value); profitDisplay.innerText = '$' + desiredProfitUnit.toFixed(2); calculate(); });
     packingSlider.addEventListener('input', function(e) { packingCost = parseFloat(e.target.value); calculate(); });
